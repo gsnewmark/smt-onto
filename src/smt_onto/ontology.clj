@@ -8,10 +8,30 @@
   :versioninfo "Unreleased Version")
 
 (as-disjoint
- (defclass Element)
+ (defclass ElementalNature)
  (defclass Skill)
  (defclass Race)
  (defclass Demon))
+
+(as-subclasses
+ ElementalNature
+ :disjoint :cover
+ (declare-classes Physical Gun Fire Ice Electric Force Light Dark))
+
+(as-subclasses
+ Skill
+ :disjoint :cover
+ (declare-classes Attack Almighty Ailment Support StatModifier Healing Auto))
+
+(as-subclasses
+ Race
+ :disjoint :cover
+ (declare-classes
+  Deity Amatsu Megami Nymph Fury Kunitsu Kishin Zealot Lady Reaper Vile Tyrant
+  Genma Yoma Fairy Night Herald Divine Fallen Avian Flight Raptor Jirae Brute
+  Femme Jaki Dragon Snake Drake Avatar Holy Food Beast Wilder Tree Wood Vermin
+  Ghost Foul Spirit Undead Element Fiend Famed Enigma Entity Godly Chaos Cyber
+  Human Undead Hordes Mitama))
 
 (as-inverse
  (defoproperty ofRace
@@ -26,17 +46,17 @@
 (as-inverse
  (defoproperty hasWeakness
    :domain Demon
-   :range Element)
+   :range ElementalNature)
  (defoproperty isWeaknessOf
-   :domain Element
+   :domain ElementalNature
    :range Demon))
 
 (as-inverse
  (defoproperty strongAgainst
    :domain Demon
-   :range Element)
+   :range ElementalNature)
  (defoproperty isStrengthOf
-   :domain Element
+   :domain ElementalNature
    :range Demon))
 
 (as-inverse
@@ -47,13 +67,12 @@
    :domain Skill
    :range Demon))
 
-;; TODO domain should be (not yet defined) AttackSkill
 (as-inverse
  (defoproperty ofElement
    :characteristic functional
-   :domain Skill
-   :range Element)
+   :domain Attack
+   :range ElementalNature)
  (defoproperty isNatureOf
    :characteristic inversefunctional
-   :domain Element
-   :range Skill))
+   :domain ElementalNature
+   :range Attack))
