@@ -1,5 +1,8 @@
 (ns smt-onto.ontology
-  (:require [tawny [owl :refer :all]]))
+  (:require [clojure.string :as cstr]
+            [smt-onto.crawl :as crawl]
+            [tawny [owl :refer :all]
+                   [pattern :as p]]))
 
 (defontology smt-ontology
   :iri "https://github.com/gsnewmark/smt-onto/resources/smt-onto.owl"
@@ -76,3 +79,52 @@
    :characteristic inversefunctional
    :domain ElementalNature
    :range Attack))
+
+(as-subclasses
+ Attack
+ :disjoint :cover
+ (defclass FireAttack
+   :equivalent
+   (owland Attack
+           (owlsome ofElement Fire)))
+ (defclass IceAttack
+   :equivalent
+   (owland Attack
+           (owlsome ofElement Ice)))
+ (defclass ForceAttack
+   :equivalent
+   (owland Attack
+           (owlsome ofElement Force)))
+ (defclass ElectricAttack
+   :equivalent
+   (owland Attack
+           (owlsome ofElement Electric)))
+ (defclass GunAttack
+   :equivalent
+   (owland Attack
+           (owlsome ofElement Gun)))
+ (defclass PhysicalAttack
+   :equivalent
+   (owland Attack
+           (owlsome ofElement Physical))))
+
+
+(defn- enum [& values] (apply oneof (map literal values)))
+
+;;; TODO should be integer
+(defdproperty hasRank :range rdf:plainliteral)
+(defdproperty usesMp :range rdf:plainliteral)
+(defdproperty hasHits :range rdf:plainliteral)
+(defdproperty hasDamage :range (enum "Weak" "Medium" "Heavy" "Severe"))
+(defdproperty hasTarget :range (enum "Single" "Multi" "All"))
+(defdproperty hasRemark :range rdf:plainliteral)
+
+(doseq [attack-skill-map (crawl/attack-skills)]
+  (let [{:keys [name rank mp damage hits target remark element]}
+        attack-skill-map]
+    (eval
+     `(defindividual ~(symbol (cstr/replace name " " "_"))
+        :type ~(symbol (str element "Attack"))
+        :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasHits ~hits)
+               (fact hasDamage ~damage) (fact hasTarget ~target)
+               (fact hasRemark ~remark)]))))
