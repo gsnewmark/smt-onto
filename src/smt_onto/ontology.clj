@@ -6,7 +6,7 @@
 
 (defontology smt-ontology
   :iri "https://github.com/gsnewmark/smt-onto/resources/smt-onto.owl"
-  :prefix "smt:"
+  :prefix "smtIV:"
   :comment "An ontology describing SMT IV demons."
   :versioninfo "Unreleased Version")
 

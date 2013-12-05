@@ -32,11 +32,12 @@
                              ;; First row is headings
                              rest
                              (html/select [:td]))
-                raw-skills (partition 9 raw-data)
+                raw-skills (partition 8 raw-data)
 
                 parse-skill
                 (fn [raw-skill]
-                  (let [[name _ rank mp damage hits target remark _]
+
+                  (let [[name rank mp damage hits target remark _]
                         (map (comp sanitize-text html/text) raw-skill)]
                     {:name name :rank rank :mp mp :damage damage
                      :hits hits :target target :remark remark
