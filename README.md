@@ -12,7 +12,7 @@ From project root run:
 
     $ lein run
 
-to generate `owl` ontology names `smt.owl` in resources subdirectory.
+to generate OWL ontology named `smt.owl` in resources subdirectory.
 
 ## License
 
