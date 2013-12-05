@@ -24,7 +24,8 @@
 (as-subclasses
  Skill
  :disjoint :cover
- (declare-classes Attack Almighty Ailment Support StatModifier Healing Auto))
+ (declare-classes
+  Attack InstantKill Almighty Ailment Support StatModifier Healing Auto))
 
 (as-subclasses
  Race
@@ -108,12 +109,19 @@
    (owland Attack
            (owlsome ofElement Physical))))
 
+(as-subclasses
+ InstantKill
+ :disjoint :cover
+ (declare-classes LightKill DarkKill))
+
 
 (defn- enum [& values] (apply oneof (map literal values)))
 
+;;; TODO add restrictions to classes - what properties should they contain
 ;;; TODO should be integer
 (defdproperty hasRank :range rdf:plainliteral)
 (defdproperty usesMp :range rdf:plainliteral)
+(defdproperty fatalChance :range (minmax 0.0 1.0))
 (defdproperty hasHits :range rdf:plainliteral)
 (defdproperty hasDamage :range (enum "Weak" "Medium" "Heavy" "Severe"))
 (defdproperty hasTarget :range (enum "Single" "Multi" "All"))
@@ -128,3 +136,12 @@
         :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasHits ~hits)
                (fact hasDamage ~damage) (fact hasTarget ~target)
                (fact hasRemark ~remark)]))))
+
+(doseq [instant-kill-skill-map (crawl/instant-kill-skills)]
+  (let [{:keys [name rank mp target fatal-chance alignment-type]}
+        instant-kill-skill-map]
+    (eval
+     `(defindividual ~(symbol (cstr/replace name " " "_"))
+        :type ~(symbol (str alignment-type "Kill"))
+        :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
+               (fact fatalChance ~fatal-chance)]))))

@@ -7,6 +7,7 @@
 (def attack-skill-types
   #{"Gun skills" "Electric skills" "Physical skills"
     "Fire skills" "Force skills" "Ice skills"})
+(def instant-kill-skill-types #{"Light skills" "Dark skills"})
 
 (defn- sanitize-text
   [text]
@@ -21,26 +22,46 @@
            (map (fn [[k v]] [(html/text k) v]))
            (into {})))
 
+(defn- parse-skills
+  [url skill-types extract-skills parse-skill]
+  (let [html-map (skills-html url)]
+    (mapcat
+     (fn [skill-type]
+       (let [raw-data (-> (html-map skill-type)
+                          (html/select [:tr])
+                          ;; First row is headings
+                          rest
+                          (html/select [:td]))
+             raw-skills (extract-skills raw-data)]
+         (doall (map (partial parse-skill skill-type) raw-skills))))
+     skill-types)))
+
+(defn- get-type [skill-type]
+  (first (cstr/split skill-type #" ")))
+
 (defn attack-skills
   ([] (attack-skills skills-list-page attack-skill-types))
-  ([url attack-skill-types]
-     (let [html-map (skills-html url)]
-       (mapcat
-        (fn [skill-type]
-          (let [raw-data (-> (html-map skill-type)
-                             (html/select [:tr])
-                             ;; First row is headings
-                             rest
-                             (html/select [:td]))
-                raw-skills (partition 8 raw-data)
+  ([url skill-types]
+     (parse-skills url skill-types
+                   (partial partition 8)
+                   (fn [skill-type raw-skill]
+                     (let [[name rank mp damage hits target remark _]
+                           (map (comp sanitize-text html/text) raw-skill)]
+                       {:name name :rank rank :mp mp :damage damage
+                        :hits hits :target target :remark remark
+                        :element (get-type skill-type)})))))
 
-                parse-skill
-                (fn [raw-skill]
-
-                  (let [[name rank mp damage hits target remark _]
-                        (map (comp sanitize-text html/text) raw-skill)]
-                    {:name name :rank rank :mp mp :damage damage
-                     :hits hits :target target :remark remark
-                     :element (first (cstr/split skill-type #" "))}))]
-            (doall (map parse-skill raw-skills))))
-        attack-skill-types))))
+(defn instant-kill-skills
+  ([] (instant-kill-skills skills-list-page instant-kill-skill-types))
+  ([url skill-types]
+     (parse-skills url skill-types
+                   (partial partition 6)
+                   (fn [skill-type raw-skill]
+                     (let [[name rank mp fatal-chance target _]
+                           (map (comp sanitize-text html/text) raw-skill)]
+                       {:name name :rank rank :mp mp :target target
+                        :fatal-chance
+                        (double (/ (Integer/parseInt (first (re-seq #"\d+"
+                                                                    fatal-chance)))
+                                   100))
+                        :alignment-type (get-type skill-type)})))))
