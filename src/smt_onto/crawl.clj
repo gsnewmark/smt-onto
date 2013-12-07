@@ -6,7 +6,7 @@
 (def skills-list-page (str wiki-root "/List_of_Shin_Megami_Tensei_IV_Skills"))
 (def attack-skill-types
   #{"Gun skills" "Electric skills" "Physical skills"
-    "Fire skills" "Force skills" "Ice skills"})
+    "Fire skills" "Force skills" "Ice skills" "Almighty skills"})
 (def instant-kill-skill-types #{"Light skills" "Dark skills"})
 
 (defn- sanitize-text
@@ -32,6 +32,12 @@
                           ;; First row is headings
                           rest
                           (html/select [:td]))
+             ;; Some tables have rows with variable-length columns
+             raw-data (mapcat (fn [r]
+                                (if (= "2" (get-in r [:attrs :colspan]))
+                                    [r {}]
+                                    [r]))
+                              raw-data)
              raw-skills (extract-skills raw-data)]
          (doall (map (partial parse-skill skill-type) raw-skills))))
      skill-types)))

@@ -19,13 +19,13 @@
 (as-subclasses
  ElementalNature
  :disjoint :cover
- (declare-classes Physical Gun Fire Ice Electric Force Light Dark))
+ (declare-classes Physical Gun Fire Ice Electric Force Light Dark Almighty))
 
 (as-subclasses
  Skill
  :disjoint :cover
  (declare-classes
-  Attack InstantKill Almighty Ailment Support StatModifier Healing Auto))
+  Attack InstantKill Ailment Support StatModifier Healing Auto))
 
 (as-subclasses
  Race
@@ -107,7 +107,11 @@
  (defclass PhysicalAttack
    :equivalent
    (owland Attack
-           (owlsome ofElement Physical))))
+           (owlsome ofElement Physical)))
+ (defclass AlmightyAttack
+   :equivalent
+   (owland Attack
+           (owlsome ofElement Almighty))))
 
 (as-subclasses
  InstantKill
