@@ -130,7 +130,7 @@
 (defdproperty hasHits :range rdf:plainliteral)
 (defdproperty hasDamage :range (enum "Weak" "Medium" "Heavy" "Severe"))
 (defdproperty hasTarget :range (enum "Single" "Multi" "All" "Self" "Ally"
-                                     "Party" "Foes"))
+                                     "Party" "Foes" "Universal"))
 (defdproperty hasRemark :range rdf:plainliteral)
 ;;; TODO should be list of enums
 (defdproperty hasAilment :range rdf:plainliteral)
@@ -171,5 +171,13 @@
     (eval
      `(defindividual ~(symbol (cstr/replace name " " "_"))
         :type SupportSkill
+        :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
+               (fact hasEffect ~effect)]))))
+
+(doseq [stat-modifier-skills-map (crawl/stat-modifier-skills)]
+  (let [{:keys [name rank mp target effect]} stat-modifier-skills-map]
+    (eval
+     `(defindividual ~(symbol (cstr/replace name " " "_"))
+        :type StatModifierSkill
         :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
                (fact hasEffect ~effect)]))))

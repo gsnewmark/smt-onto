@@ -9,7 +9,10 @@
              "Fire skills" "Force skills" "Ice skills" "Almighty skills"}
    :instant-kill #{"Light skills" "Dark skills"}
    :ailment #{"Ailment skills"}
-   :support #{"Support skills"}})
+   :support #{"Support skills"}
+   :stat-modifier #{"Stat modifiers"}
+   :healing #{"Healing skills"}
+   :auto #{"Auto skills"}})
 
 (defn- fetch-url [url] (html/html-resource (java.net.URL. url)))
 
@@ -97,7 +100,18 @@
      (parse-skills url skill-types
                    (partial partition 6)
                    (fn [skill-type raw-skill]
-                     (let [[name rank mp target effect  _]
+                     (let [[name rank mp target effect _]
+                           (map (comp sanitize-text html/text) raw-skill)]
+                       {:name name :rank rank :mp (Integer/parseInt mp)
+                        :target target :effect effect})))))
+
+(defn stat-modifier-skills
+  ([] (stat-modifier-skills skills-list-page (:stat-modifier skill-types)))
+  ([url skill-types]
+     (parse-skills url skill-types
+                   (partial partition 5)
+                   (fn [skill-type raw-skill]
+                     (let [[name rank mp target effect]
                            (map (comp sanitize-text html/text) raw-skill)]
                        {:name name :rank rank :mp (Integer/parseInt mp)
                         :target target :effect effect})))))
