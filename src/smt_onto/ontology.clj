@@ -189,3 +189,10 @@
         :type HealingSkill
         :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
                (fact hasEffect ~effect)]))))
+
+(doseq [auto-skills-map (crawl/auto-skills)]
+  (let [{:keys [name rank effect]} auto-skills-map]
+    (eval
+     `(defindividual ~(symbol (cstr/replace name " " "_"))
+        :type AutoSkill
+        :fact [(fact hasRank ~rank) (fact hasEffect ~effect)]))))

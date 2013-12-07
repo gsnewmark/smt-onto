@@ -52,8 +52,9 @@
                            (concat [r] (repeat (dec (Integer/parseInt n)) {}))
                            [r]))
                        raw-data)
-             raw-skills (extract-skills raw-data)]
-         (doall (map (partial parse-skill skill-type) raw-skills))))
+             raw-skills (extract-skills raw-data)
+             skills (map #(map (comp sanitize-text html/text) %) raw-skills)]
+         (doall (map (partial parse-skill skill-type) skills))))
      skill-types)))
 
 (defn attack-skills
@@ -61,9 +62,8 @@
   ([url skill-types]
      (parse-skills url skill-types
                    (partial partition 8)
-                   (fn [skill-type raw-skill]
-                     (let [[name rank mp damage hits target remark _]
-                           (map (comp sanitize-text html/text) raw-skill)]
+                   (fn [skill-type skill]
+                     (let [[name rank mp damage hits target remark _] skill]
                        {:name name :rank rank :damage damage
                         :hits hits :target target :remark remark
                         :mp (Integer/parseInt mp)
@@ -74,9 +74,8 @@
   ([url skill-types]
      (parse-skills url skill-types
                    (partial partition 6)
-                   (fn [skill-type raw-skill]
-                     (let [[name rank mp fatal-chance target _]
-                           (map (comp sanitize-text html/text) raw-skill)]
+                   (fn [skill-type skill]
+                     (let [[name rank mp fatal-chance target _] skill]
                        {:name name :rank rank :target target
                         :mp (Integer/parseInt mp)
                         :fatal-chance (percents->double fatal-chance)
@@ -87,9 +86,8 @@
   ([url skill-types]
      (parse-skills url skill-types
                    (partial partition 8)
-                   (fn [skill-type raw-skill]
-                     (let [[name rank mp target chance ailment remark _]
-                           (map (comp sanitize-text html/text) raw-skill)]
+                   (fn [skill-type skill]
+                     (let [[name rank mp target chance ailment remark _] skill]
                        {:name name :rank rank :mp (Integer/parseInt mp)
                         :target target :ailment ailment :remark remark
                         :chance (percents->double chance)})))))
@@ -99,9 +97,8 @@
   ([url skill-types]
      (parse-skills url skill-types
                    (partial partition 6)
-                   (fn [skill-type raw-skill]
-                     (let [[name rank mp target effect _]
-                           (map (comp sanitize-text html/text) raw-skill)]
+                   (fn [skill-type skill]
+                     (let [[name rank mp target effect _] skill]
                        {:name name :rank rank :mp (Integer/parseInt mp)
                         :target target :effect effect})))))
 
@@ -109,9 +106,8 @@
   [url skill-types]
   (parse-skills url skill-types
                 (partial partition 5)
-                (fn [skill-type raw-skill]
-                  (let [[name rank mp target effect]
-                        (map (comp sanitize-text html/text) raw-skill)]
+                (fn [skill-type skill]
+                  (let [[name rank mp target effect] skill]
                     {:name name :rank rank :mp (Integer/parseInt mp)
                      :target target :effect effect}))))
 
@@ -122,3 +118,12 @@
 (defn healing-skills
   ([] (healing-skills skills-list-page (:healing skill-types)))
   ([url skill-types] (skills-with-effect url skill-types)))
+
+(defn auto-skills
+  ([] (auto-skills skills-list-page (:auto skill-types)))
+  ([url skill-types]
+     (parse-skills url skill-types
+                   (partial partition 3)
+                   (fn [skill-type skill]
+                     (let [[name rank effect] skill]
+                       {:name name :rank rank :effect effect})))))
