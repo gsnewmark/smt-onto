@@ -105,13 +105,20 @@
                        {:name name :rank rank :mp (Integer/parseInt mp)
                         :target target :effect effect})))))
 
+(defn- skills-with-effect
+  [url skill-types]
+  (parse-skills url skill-types
+                (partial partition 5)
+                (fn [skill-type raw-skill]
+                  (let [[name rank mp target effect]
+                        (map (comp sanitize-text html/text) raw-skill)]
+                    {:name name :rank rank :mp (Integer/parseInt mp)
+                     :target target :effect effect}))))
+
 (defn stat-modifier-skills
   ([] (stat-modifier-skills skills-list-page (:stat-modifier skill-types)))
-  ([url skill-types]
-     (parse-skills url skill-types
-                   (partial partition 5)
-                   (fn [skill-type raw-skill]
-                     (let [[name rank mp target effect]
-                           (map (comp sanitize-text html/text) raw-skill)]
-                       {:name name :rank rank :mp (Integer/parseInt mp)
-                        :target target :effect effect})))))
+  ([url skill-types] (skills-with-effect url skill-types)))
+
+(defn healing-skills
+  ([] (healing-skills skills-list-page (:healing skill-types)))
+  ([url skill-types] (skills-with-effect url skill-types)))

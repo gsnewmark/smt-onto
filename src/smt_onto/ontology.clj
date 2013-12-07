@@ -26,7 +26,7 @@
  :disjoint :cover
  (declare-classes
   AttackSkill InstantKillSkill AilmentSkill SupportSkill
-  StatModifierSkill HealingSKill AutoSkill))
+  StatModifierSkill HealingSkill AutoSkill))
 
 (as-subclasses
  Race
@@ -179,5 +179,13 @@
     (eval
      `(defindividual ~(symbol (cstr/replace name " " "_"))
         :type StatModifierSkill
+        :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
+               (fact hasEffect ~effect)]))))
+
+(doseq [healing-skills-map (crawl/healing-skills)]
+  (let [{:keys [name rank mp target effect]} healing-skills-map]
+    (eval
+     `(defindividual ~(symbol (cstr/replace name " " "_"))
+        :type HealingSkill
         :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
                (fact hasEffect ~effect)]))))
