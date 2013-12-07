@@ -25,7 +25,8 @@
  Skill
  :disjoint :cover
  (declare-classes
-  Attack InstantKill Ailment Support StatModifier Healing Auto))
+  AttackSkill InstantKillSkill AilmentSkill SupportSkill
+  StatModifierSkill HealingSKill AutoSkill))
 
 (as-subclasses
  Race
@@ -74,69 +75,73 @@
 (as-inverse
  (defoproperty ofElement
    :characteristic functional
-   :domain Attack
+   :domain AttackSkill
    :range ElementalNature)
  (defoproperty isNatureOf
    :characteristic inversefunctional
    :domain ElementalNature
-   :range Attack))
+   :range AttackSkill))
 
 (as-subclasses
- Attack
+ AttackSkill
  :disjoint :cover
- (defclass FireAttack
+ (defclass FireAttackSkill
    :equivalent
-   (owland Attack
+   (owland AttackSkill
            (owlsome ofElement Fire)))
- (defclass IceAttack
+ (defclass IceAttackSkill
    :equivalent
-   (owland Attack
+   (owland AttackSkill
            (owlsome ofElement Ice)))
- (defclass ForceAttack
+ (defclass ForceAttackSkill
    :equivalent
-   (owland Attack
+   (owland AttackSkill
            (owlsome ofElement Force)))
- (defclass ElectricAttack
+ (defclass ElectricAttackSkill
    :equivalent
-   (owland Attack
+   (owland AttackSkill
            (owlsome ofElement Electric)))
- (defclass GunAttack
+ (defclass GunAttackSkill
    :equivalent
-   (owland Attack
+   (owland AttackSkill
            (owlsome ofElement Gun)))
- (defclass PhysicalAttack
+ (defclass PhysicalAttackSkill
    :equivalent
-   (owland Attack
+   (owland AttackSkill
            (owlsome ofElement Physical)))
- (defclass AlmightyAttack
+ (defclass AlmightyAttackSkill
    :equivalent
-   (owland Attack
+   (owland AttackSkill
            (owlsome ofElement Almighty))))
 
 (as-subclasses
- InstantKill
+ InstantKillSkill
  :disjoint :cover
- (declare-classes LightKill DarkKill))
+ (declare-classes LightKillSkill DarkKillSkill))
 
 
 (defn- enum [& values] (apply oneof (map literal values)))
 
 ;;; TODO add restrictions to classes - what properties should they contain
-;;; TODO should be integer
+;;; TODO should be minmax
 (defdproperty hasRank :range rdf:plainliteral)
+;;; TODO should be int
 (defdproperty usesMp :range rdf:plainliteral)
 (defdproperty fatalChance :range (minmax 0.0 1.0))
 (defdproperty hasHits :range rdf:plainliteral)
 (defdproperty hasDamage :range (enum "Weak" "Medium" "Heavy" "Severe"))
 (defdproperty hasTarget :range (enum "Single" "Multi" "All"))
 (defdproperty hasRemark :range rdf:plainliteral)
+;;; TODO should be list of enums
+(defdproperty hasAilment :range rdf:plainliteral)
+(defdproperty ailmentChance :range (minmax 0.0 1.0))
 
 (doseq [attack-skill-map (crawl/attack-skills)]
   (let [{:keys [name rank mp damage hits target remark element]}
         attack-skill-map]
     (eval
      `(defindividual ~(symbol (cstr/replace name " " "_"))
-        :type ~(symbol (str element "Attack"))
+        :type ~(symbol (str element "AttackSkill"))
         :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasHits ~hits)
                (fact hasDamage ~damage) (fact hasTarget ~target)
                (fact hasRemark ~remark)]))))
@@ -146,6 +151,16 @@
         instant-kill-skill-map]
     (eval
      `(defindividual ~(symbol (cstr/replace name " " "_"))
-        :type ~(symbol (str alignment-type "Kill"))
+        :type ~(symbol (str alignment-type "KillSkill"))
         :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
                (fact fatalChance ~fatal-chance)]))))
+
+(doseq [ailment-skill-map (crawl/ailment-skills)]
+  (let [{:keys [name rank mp target chance remark ailment]}
+        ailment-skill-map]
+    (eval
+     `(defindividual ~(symbol (cstr/replace name " " "_"))
+        :type AilmentSkill
+        :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
+               (fact ailmentChance ~chance) (fact hasRemark ~remark)
+               (fact hasAilment ~ailment)]))))

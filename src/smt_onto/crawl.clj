@@ -8,6 +8,7 @@
   #{"Gun skills" "Electric skills" "Physical skills"
     "Fire skills" "Force skills" "Ice skills" "Almighty skills"})
 (def instant-kill-skill-types #{"Light skills" "Dark skills"})
+(def ailment-skill-types #{"Ailment skills"})
 
 (defn- sanitize-text
   [text]
@@ -33,17 +34,23 @@
                           rest
                           (html/select [:td]))
              ;; Some tables have rows with variable-length columns
-             raw-data (mapcat (fn [r]
-                                (if (= "2" (get-in r [:attrs :colspan]))
-                                    [r {}]
-                                    [r]))
-                              raw-data)
+             raw-data (mapcat
+                       (fn [r]
+                         (if-let [n (get-in r [:attrs :colspan])]
+                           (concat [r] (repeat (dec (Integer/parseInt n)) {}))
+                           [r]))
+                       raw-data)
              raw-skills (extract-skills raw-data)]
          (doall (map (partial parse-skill skill-type) raw-skills))))
      skill-types)))
 
 (defn- get-type [skill-type]
   (first (cstr/split skill-type #" ")))
+
+(defn- percents->double
+  "Transform string with percents (\"30%\") to double [0.0, 1.0]."
+  [s]
+  (double (/ (Integer/parseInt (first (re-seq #"\d+" s))) 100)))
 
 (defn attack-skills
   ([] (attack-skills skills-list-page attack-skill-types))
@@ -66,8 +73,17 @@
                      (let [[name rank mp fatal-chance target _]
                            (map (comp sanitize-text html/text) raw-skill)]
                        {:name name :rank rank :mp mp :target target
-                        :fatal-chance
-                        (double (/ (Integer/parseInt (first (re-seq #"\d+"
-                                                                    fatal-chance)))
-                                   100))
+                        :fatal-chance (percents->double fatal-chance)
                         :alignment-type (get-type skill-type)})))))
+
+(defn ailment-skills
+  ([] (ailment-skills skills-list-page ailment-skill-types))
+  ([url skill-types]
+     (parse-skills url skill-types
+                   (partial partition 8)
+                   (fn [skill-type raw-skill]
+                     (let [[name rank mp target chance ailment remark _]
+                           (map (comp sanitize-text html/text) raw-skill)]
+                       {:name name :rank rank :mp mp :target target
+                        :ailment ailment :remark remark
+                        :chance (percents->double chance)})))))
