@@ -125,16 +125,17 @@
 ;;; TODO add restrictions to classes - what properties should they contain
 ;;; TODO should be minmax
 (defdproperty hasRank :range rdf:plainliteral)
-;;; TODO should be int
-(defdproperty usesMp :range rdf:plainliteral)
+(defdproperty usesMp :range xsd:integer)
 (defdproperty fatalChance :range (minmax 0.0 1.0))
 (defdproperty hasHits :range rdf:plainliteral)
 (defdproperty hasDamage :range (enum "Weak" "Medium" "Heavy" "Severe"))
-(defdproperty hasTarget :range (enum "Single" "Multi" "All"))
+(defdproperty hasTarget :range (enum "Single" "Multi" "All" "Self" "Ally"
+                                     "Party" "Foes"))
 (defdproperty hasRemark :range rdf:plainliteral)
 ;;; TODO should be list of enums
 (defdproperty hasAilment :range rdf:plainliteral)
 (defdproperty ailmentChance :range (minmax 0.0 1.0))
+(defdproperty hasEffect :range xsd:integer)
 
 (doseq [attack-skill-map (crawl/attack-skills)]
   (let [{:keys [name rank mp damage hits target remark element]}
@@ -164,3 +165,11 @@
         :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
                (fact ailmentChance ~chance) (fact hasRemark ~remark)
                (fact hasAilment ~ailment)]))))
+
+(doseq [support-skill-map (crawl/support-skills)]
+  (let [{:keys [name rank mp target effect]} support-skill-map]
+    (eval
+     `(defindividual ~(symbol (cstr/replace name " " "_"))
+        :type SupportSkill
+        :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
+               (fact hasEffect ~effect)]))))
