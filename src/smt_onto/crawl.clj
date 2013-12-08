@@ -2,8 +2,11 @@
   (:require [clojure.string :as cstr]
             [net.cgrand.enlive-html :as html]))
 
-(def wiki-root "http://megamitensei.wikia.com/wiki")
-(def skills-list-page (str wiki-root "/List_of_Shin_Megami_Tensei_IV_Skills"))
+(def wiki-root "http://megamitensei.wikia.com")
+(def skills-list-page
+  (str wiki-root "/wiki/List_of_Shin_Megami_Tensei_IV_Skills"))
+(def demons-list-page
+  (str wiki-root "/wiki/List_of_Shin_Megami_Tensei_IV_Demons"))
 (def skill-types
   {:attack #{"Gun skills" "Electric skills" "Physical skills"
              "Fire skills" "Force skills" "Ice skills" "Almighty skills"}
@@ -22,6 +25,19 @@
            (partition 2)
            (map (fn [[k v]] [(html/text k) v]))
            (into {})))
+
+(defn- demons-list-html [url]
+  (html/select (fetch-url url) #{[:table.smt4 :a]}))
+
+;;; List with four elements:
+;;; 1 - (Race, Level, HP, MP, ST, DX, MA, AG, LU)
+;;; 2 - resistances
+;;; 3 - ailment resistance and physical attack
+;;; 4 - skills list
+(defn- demon-html [url]
+  (remove string?
+   (html/select (fetch-url url)
+                #{[:table.smt4] [(html/rights [:table.smt4])]})))
 
 (defn- sanitize-text
   [text]
@@ -127,3 +143,9 @@
                    (fn [skill-type skill]
                      (let [[name rank effect] skill]
                        {:name name :rank rank :effect effect})))))
+
+(defn demons-list
+  ([] (demons-list demons-list-page))
+  ([url]
+     (into {} (map (juxt html/text #(get-in % [:attrs :href]))
+                   (demons-list-html url)))))
