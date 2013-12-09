@@ -137,13 +137,13 @@
 (defdproperty ailmentChance :range (minmax 0.0 1.0))
 (defdproperty hasEffect :range xsd:integer)
 
-(defn- space->dash [s] (cstr/replace s " " "_"))
+(defn- space->_ [s] (cstr/replace s " " "_"))
 
 (doseq [attack-skill-map (crawl/attack-skills)]
   (let [{:keys [name rank mp damage hits target remark element]}
         attack-skill-map]
     (eval
-     `(defindividual ~(symbol (space->dash name))
+     `(defindividual ~(symbol (space->_ name))
         :type ~(symbol (str element "AttackSkill"))
         :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasHits ~hits)
                (fact hasDamage ~damage) (fact hasTarget ~target)
@@ -153,7 +153,7 @@
   (let [{:keys [name rank mp target fatal-chance alignment-type]}
         instant-kill-skill-map]
     (eval
-     `(defindividual ~(symbol (space->dash name))
+     `(defindividual ~(symbol (space->_ name))
         :type ~(symbol (str alignment-type "KillSkill"))
         :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
                (fact fatalChance ~fatal-chance)]))))
@@ -162,7 +162,7 @@
   (let [{:keys [name rank mp target chance remark ailment]}
         ailment-skill-map]
     (eval
-     `(defindividual ~(symbol (space->dash name))
+     `(defindividual ~(symbol (space->_ name))
         :type AilmentSkill
         :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
                (fact ailmentChance ~chance) (fact hasRemark ~remark)
@@ -171,7 +171,7 @@
 (doseq [support-skill-map (crawl/support-skills)]
   (let [{:keys [name rank mp target effect]} support-skill-map]
     (eval
-     `(defindividual ~(symbol (space->dash name))
+     `(defindividual ~(symbol (space->_ name))
         :type SupportSkill
         :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
                (fact hasEffect ~effect)]))))
@@ -179,7 +179,7 @@
 (doseq [stat-modifier-skills-map (crawl/stat-modifier-skills)]
   (let [{:keys [name rank mp target effect]} stat-modifier-skills-map]
     (eval
-     `(defindividual ~(symbol (space->dash name))
+     `(defindividual ~(symbol (space->_ name))
         :type StatModifierSkill
         :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
                (fact hasEffect ~effect)]))))
@@ -187,7 +187,7 @@
 (doseq [healing-skills-map (crawl/healing-skills)]
   (let [{:keys [name rank mp target effect]} healing-skills-map]
     (eval
-     `(defindividual ~(symbol (space->dash name))
+     `(defindividual ~(symbol (space->_ name))
         :type HealingSkill
         :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
                (fact hasEffect ~effect)]))))
@@ -195,6 +195,6 @@
 (doseq [auto-skills-map (crawl/auto-skills)]
   (let [{:keys [name rank effect]} auto-skills-map]
     (eval
-     `(defindividual ~(symbol (space->dash name))
+     `(defindividual ~(symbol (space->_ name))
         :type AutoSkill
         :fact [(fact hasRank ~rank) (fact hasEffect ~effect)]))))
