@@ -34,6 +34,7 @@
 ;;; 2 - resistances
 ;;; 3 - ailment resistance and physical attack
 ;;; 4 - skills list
+;;; TODO some demons have 2 tables http://megamitensei.wikia.com/wiki/Murmur
 (defn- demon-html [url]
   (remove string?
    (html/select (fetch-url url)
@@ -50,6 +51,8 @@
   "Transform string with percents (\"30%\") to double [0.0, 1.0]."
   [s]
   (double (/ (Integer/parseInt (first (re-seq #"\d+" s))) 100)))
+
+(defn- html->text [html] ((comp sanitize-text html/text) html))
 
 (defn- parse-skills
   [url skill-types extract-skills parse-skill]
@@ -69,7 +72,7 @@
                            [r]))
                        raw-data)
              raw-skills (extract-skills raw-data)
-             skills (map #(map (comp sanitize-text html/text) %) raw-skills)]
+             skills (map #(map html->text %) raw-skills)]
          (doall (map (partial parse-skill skill-type) skills))))
      skill-types)))
 
@@ -149,3 +152,17 @@
   ([url]
      (into {} (map (juxt html/text #(get-in % [:attrs :href]))
                    (demons-list-html url)))))
+
+(defn- parse-demon-skills
+  [demon-skills-html]
+  (-> demon-skills-html
+      (html/select [:tr])
+      (#(drop 2 %))
+      (html/select [:th])
+      (#(map (comp cstr/trim html->text) %))))
+
+(defn demon
+  [name url]
+  (when-let [[stats resistances ailment-and-attak skills] (demon-html url)]
+    {:name name
+     :skills (parse-demon-skills skills)}))
