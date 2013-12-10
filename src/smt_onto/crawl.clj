@@ -42,7 +42,7 @@
 
 (defn- sanitize-text
   [text]
-  (or (first (re-seq #"[A-Za-z0-9 %,~_\-.\"']+" text)) ""))
+  (or (first (re-seq #"[A-Za-z0-9 %,~_\-.\"':]+" text)) ""))
 
 (defn- get-type [skill-type]
   (first (cstr/split skill-type #" ")))
@@ -177,17 +177,27 @@
   [demon-resistances-html]
   (parse-two-row-table demon-resistances-html))
 
+(defn- parse-demon-ailment-and-attack
+  [demon-ailment-and-attack-html]
+  (-> demon-ailment-and-attack-html
+      (html/select [:tr])
+      (html/select [:td])
+      (#(map html->text %))))
+
 (defn demon
   [name url]
-  (when-let [[stats resistances ailment-and-attak skills] (demon-html url)]
+  (when-let [[stats resistances ailment-and-attack skills] (demon-html url)]
     (let [stats (parse-demon-stats stats)
           race (first stats)
           [level hp mp st dx ma ag lu]
           (map #(Integer/parseInt %) (rest stats))
           [phys gun fire ice elec force light dark]
-          (parse-demon-resistances resistances)]
+          (parse-demon-resistances resistances)
+          [ailment attack]
+          (parse-demon-ailment-and-attack ailment-and-attack)]
       {:name name :race race :level level :hp hp :mp mp
        :stats {:strength st :dexterity dx :magic ma :agility ag :luck lu}
        :resistances {:physical phys :gun gun :fire fire :ice ice
                      :electric elec :force force :light light :dark dark}
+       :ailment ailment :attack attack
        :skills (parse-demon-skills skills)})))
