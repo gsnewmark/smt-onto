@@ -52,7 +52,7 @@
   [s]
   (double (/ (Integer/parseInt (first (re-seq #"\d+" s))) 100)))
 
-(defn- html->text [html] ((comp sanitize-text html/text) html))
+(defn- html->text [html] ((comp cstr/trim sanitize-text html/text) html))
 
 (defn- parse-skills
   [url skill-types extract-skills parse-skill]
@@ -159,10 +159,23 @@
       (html/select [:tr])
       (#(drop 2 %))
       (html/select [:th])
-      (#(map (comp cstr/trim html->text) %))))
+      (#(map html->text %))))
+
+(defn- parse-demon-stats
+  [demon-stats-html]
+  (-> demon-stats-html
+      (html/select [:tr])
+      rest
+      (html/select [:td])
+      (#(map html->text %))))
 
 (defn demon
   [name url]
   (when-let [[stats resistances ailment-and-attak skills] (demon-html url)]
-    {:name name
-     :skills (parse-demon-skills skills)}))
+    (let [stats (parse-demon-stats stats)
+          race (first stats)
+          [level hp mp st dx ma ag lu]
+          (map #(Integer/parseInt %) (rest stats))]
+      {:name name :race race :level level :hp hp :mp mp
+       :strength st :dexterity dx :magic ma :agility ag :luck lu
+       :skills (parse-demon-skills skills)})))
