@@ -161,13 +161,21 @@
       (html/select [:th])
       (#(map html->text %))))
 
-(defn- parse-demon-stats
-  [demon-stats-html]
-  (-> demon-stats-html
+(defn- parse-two-row-table
+  [table-html]
+  (-> table-html
       (html/select [:tr])
       rest
       (html/select [:td])
       (#(map html->text %))))
+
+(defn- parse-demon-stats
+  [demon-stats-html]
+  (parse-two-row-table demon-stats-html))
+
+(defn- parse-demon-resistances
+  [demon-resistances-html]
+  (parse-two-row-table demon-resistances-html))
 
 (defn demon
   [name url]
@@ -175,7 +183,11 @@
     (let [stats (parse-demon-stats stats)
           race (first stats)
           [level hp mp st dx ma ag lu]
-          (map #(Integer/parseInt %) (rest stats))]
+          (map #(Integer/parseInt %) (rest stats))
+          [phys gun fire ice elec force light dark]
+          (parse-demon-resistances resistances)]
       {:name name :race race :level level :hp hp :mp mp
-       :strength st :dexterity dx :magic ma :agility ag :luck lu
+       :stats {:strength st :dexterity dx :magic ma :agility ag :luck lu}
+       :resistances {:physical phys :gun gun :fire fire :ice ice
+                     :electric elec :force force :light light :dark dark}
        :skills (parse-demon-skills skills)})))
