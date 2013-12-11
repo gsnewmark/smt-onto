@@ -29,12 +29,9 @@
 (defn- demons-list-html [url]
   (html/select (fetch-url url) #{[:table.smt4 :a]}))
 
-;;; List with four elements:
-;;; 1 - (Race, Level, HP, MP, ST, DX, MA, AG, LU)
-;;; 2 - resistances
-;;; 3 - ailment resistance and physical attack
-;;; 4 - skills list
-;;; TODO some demons have 2 tables http://megamitensei.wikia.com/wiki/Murmur
+;;; TODO some demons have 2 tables (for boss version and ally version):
+;;;      http://megamitensei.wikia.com/wiki/Murmur
+;;;      http://megamitensei.wikia.com/wiki/Raphael
 (defn- demon-html [url]
   (remove string?
    (html/select (fetch-url url)
@@ -186,18 +183,21 @@
 
 (defn demon
   [name url]
-  (when-let [[stats resistances ailment-and-attack skills] (demon-html url)]
-    (let [stats (parse-demon-stats stats)
-          race (first stats)
-          [level hp mp st dx ma ag lu]
-          (map #(Integer/parseInt %) (rest stats))
-          [phys gun fire ice elec force light dark]
-          (parse-demon-resistances resistances)
-          [ailment attack]
-          (parse-demon-ailment-and-attack ailment-and-attack)]
-      {:name name :race race :level level :hp hp :mp mp
-       :stats {:strength st :dexterity dx :magic ma :agility ag :luck lu}
-       :resistances {:physical phys :gun gun :fire fire :ice ice
-                     :electric elec :force force :light light :dark dark}
-       :ailment ailment :attack attack
-       :skills (parse-demon-skills skills)})))
+  (println name url)
+  (let [[stats resistances ailment-and-attack skills :as d] (demon-html url)]
+    (when-not (empty? d)
+      (let [stats (parse-demon-stats stats)
+            race (first stats)
+            [level hp mp st dx ma ag lu]
+            (map #(try (Integer/parseInt %)
+                       (catch NumberFormatException e 0)) (rest stats))
+            [phys gun fire ice elec force light dark]
+            (parse-demon-resistances resistances)
+            [ailment attack]
+            (parse-demon-ailment-and-attack ailment-and-attack)]
+        {:name name :race race :level level :hp hp :mp mp
+         :stats {:strength st :dexterity dx :magic ma :agility ag :luck lu}
+         :resistances {:physical phys :gun gun :fire fire :ice ice
+                       :electric elec :force force :light light :dark dark}
+         :ailment ailment :attack attack
+         :skills (parse-demon-skills skills)}))))

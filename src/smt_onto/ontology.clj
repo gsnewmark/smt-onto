@@ -28,15 +28,16 @@
   AttackSkill InstantKillSkill AilmentSkill SupportSkill
   StatModifierSkill HealingSkill AutoSkill))
 
-(as-subclasses
- Race
- :disjoint :cover
- (declare-classes
-  Deity Amatsu Megami Nymph Fury Kunitsu Kishin Zealot Lady Reaper Vile Tyrant
-  Genma Yoma Fairy Night Herald Divine Fallen Avian Flight Raptor Jirae Brute
-  Femme Jaki Dragon Snake Drake Avatar Holy Food Beast Wilder Tree Wood Vermin
-  Ghost Foul Spirit Undead Element Fiend Famed Enigma Entity Godly Chaos Cyber
-  Human Undead Hordes Mitama))
+
+(doseq [race ["Deity" "Amatsu" "Megami" "Nymph" "Fury" "Kunitsu" "Kishin"
+              "Zealot" "Lady" "Reaper" "Vile" "Tyrant" "Genma" "Yoma"
+              "Fairy" "Night" "Herald" "Divine" "Fallen" "Avian" "Flight"
+              "Raptor" "Jirae" "Brute" "Femme" "Jaki" "Dragon" "Snake"
+              "Drake" "Avatar" "Holy" "Food" "Beast" "Wilder" "Tree" "Wood"
+              "Vermin" "Ghost" "Foul" "Spirit" "Undead" "Element" "Fiend"
+              "Famed" "Enigma" "Entity" "Godly" "Chaos" "Cyber" "Human"
+              "Undead" "Hordes" "Mitama"]]
+  (eval `(defindividual ~(symbol race) :type Race)))
 
 (as-inverse
  (defoproperty ofRace
@@ -139,62 +140,73 @@
 
 (defn- space->_ [s] (cstr/replace s " " "_"))
 
-(doseq [attack-skill-map (crawl/attack-skills)]
-  (let [{:keys [name rank mp damage hits target remark element]}
-        attack-skill-map]
-    (eval
-     `(defindividual ~(symbol (space->_ name))
-        :type ~(symbol (str element "AttackSkill"))
-        :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasHits ~hits)
-               (fact hasDamage ~damage) (fact hasTarget ~target)
-               (fact hasRemark ~remark)]))))
+(doseq [attack-skill-map (crawl/attack-skills)
+        :let [{:keys [name rank mp damage hits target remark element]}
+              attack-skill-map]]
+  (eval
+   `(defindividual ~(symbol (space->_ name))
+      :type ~(symbol (str element "AttackSkill"))
+      :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasHits ~hits)
+             (fact hasDamage ~damage) (fact hasTarget ~target)
+             (fact hasRemark ~remark)])))
 
-(doseq [instant-kill-skill-map (crawl/instant-kill-skills)]
-  (let [{:keys [name rank mp target fatal-chance alignment-type]}
-        instant-kill-skill-map]
-    (eval
-     `(defindividual ~(symbol (space->_ name))
-        :type ~(symbol (str alignment-type "KillSkill"))
-        :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
-               (fact fatalChance ~fatal-chance)]))))
+(doseq [instant-kill-skill-map (crawl/instant-kill-skills)
+        :let [{:keys [name rank mp target fatal-chance alignment-type]}
+              instant-kill-skill-map]]
+  (eval
+   `(defindividual ~(symbol (space->_ name))
+      :type ~(symbol (str alignment-type "KillSkill"))
+      :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
+             (fact fatalChance ~fatal-chance)])))
 
-(doseq [ailment-skill-map (crawl/ailment-skills)]
-  (let [{:keys [name rank mp target chance remark ailment]}
-        ailment-skill-map]
-    (eval
-     `(defindividual ~(symbol (space->_ name))
-        :type AilmentSkill
-        :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
-               (fact ailmentChance ~chance) (fact hasRemark ~remark)
-               (fact hasAilment ~ailment)]))))
+(doseq [ailment-skill-map (crawl/ailment-skills)
+        :let [{:keys [name rank mp target chance remark ailment]}
+              ailment-skill-map]]
+  (eval
+   `(defindividual ~(symbol (space->_ name))
+      :type AilmentSkill
+      :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
+             (fact ailmentChance ~chance) (fact hasRemark ~remark)
+             (fact hasAilment ~ailment)])))
 
-(doseq [support-skill-map (crawl/support-skills)]
-  (let [{:keys [name rank mp target effect]} support-skill-map]
-    (eval
-     `(defindividual ~(symbol (space->_ name))
-        :type SupportSkill
-        :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
-               (fact hasEffect ~effect)]))))
+(doseq [support-skill-map (crawl/support-skills)
+        :let [{:keys [name rank mp target effect]} support-skill-map]]
+  (eval
+   `(defindividual ~(symbol (space->_ name))
+      :type SupportSkill
+      :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
+             (fact hasEffect ~effect)])))
 
-(doseq [stat-modifier-skills-map (crawl/stat-modifier-skills)]
-  (let [{:keys [name rank mp target effect]} stat-modifier-skills-map]
-    (eval
-     `(defindividual ~(symbol (space->_ name))
-        :type StatModifierSkill
-        :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
-               (fact hasEffect ~effect)]))))
+(doseq [stat-modifier-skills-map (crawl/stat-modifier-skills)
+        :let [{:keys [name rank mp target effect]} stat-modifier-skills-map]]
+  (eval
+   `(defindividual ~(symbol (space->_ name))
+      :type StatModifierSkill
+      :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
+             (fact hasEffect ~effect)])))
 
-(doseq [healing-skills-map (crawl/healing-skills)]
-  (let [{:keys [name rank mp target effect]} healing-skills-map]
-    (eval
-     `(defindividual ~(symbol (space->_ name))
-        :type HealingSkill
-        :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
-               (fact hasEffect ~effect)]))))
+(doseq [healing-skills-map (crawl/healing-skills)
+        :let [{:keys [name rank mp target effect]} healing-skills-map]]
+  (eval
+   `(defindividual ~(symbol (space->_ name))
+      :type HealingSkill
+      :fact [(fact hasRank ~rank) (fact usesMp ~mp) (fact hasTarget ~target)
+             (fact hasEffect ~effect)])))
 
-(doseq [auto-skills-map (crawl/auto-skills)]
-  (let [{:keys [name rank effect]} auto-skills-map]
+(doseq [auto-skills-map (crawl/auto-skills)
+        :let [{:keys [name rank effect]} auto-skills-map]]
+  (eval
+   `(defindividual ~(symbol (space->_ name))
+      :type AutoSkill
+      :fact [(fact hasRank ~rank) (fact hasEffect ~effect)])))
+
+(doseq [[name url] (crawl/demons-list)
+        :let [{:keys [name race] :as demon}
+              (crawl/demon name (str crawl/wiki-root url))]]
+  (when demon
     (eval
-     `(defindividual ~(symbol (space->_ name))
-        :type AutoSkill
-        :fact [(fact hasRank ~rank) (fact hasEffect ~effect)]))))
+     ;; TODO find a way to overcome the following problem:
+     ;;      names of some demons clash with Java classes (e. g., Long)
+     `(defindividual ~(symbol (str (space->_ name) "_Demon"))
+        :type Demon
+        :fact [(fact ofRace ~(symbol race))]))))
