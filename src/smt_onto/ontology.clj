@@ -12,21 +12,71 @@
 
 (as-disjoint
  (defclass ElementalNature)
- (defclass Skill)
+ (defclass Skill
+   :equivalent
+   (owland (owlsome belongsTo Demon)
+           (exactly 1 hasRank)))
  (defclass Race)
- (defclass Demon))
+ (defclass Demon
+   :equivalent
+   (owland (owlsome ofRace Race)
+           (atleast 1 hasSkill Skill)
+           (owlsome initialLevel xsd:integer)
+           (owlsome hasHP xsd:integer)
+           (owlsome hasMP xsd:integer)
+           (owlsome hasStrength xsd:integer)
+           (owlsome hasDexterity xsd:integer)
+           (owlsome hasMagic xsd:integer)
+           (owlsome hasAgility xsd:integer)
+           (owlsome hasLuck xsd:integer)
+           (owlsome hasAilmentResistance rdf:plainliteral)
+           (owlsome hasAttack rdf:plainliteral))))
 
 (as-subclasses
  Skill
  :disjoint :cover
- (declare-classes
-  ElementalSkill AilmentSkill SupportSkill
-  StatModifierSkill HealingSkill AutoSkill))
+ (defclass ElementalSkill
+   :equivalent
+   (owlsome ofElement ElementalNature))
+ (defclass AilmentSkill
+   :equivalent
+   (owland (owlsome usesMp xsd:integer)
+           (owlsome hasRemark rdf:plainliteral)
+           (owlsome hasTarget rdf:plainliteral)
+           (owlsome ailmentChance xsd:double)
+           (owlsome hasAilment rdf:plainliteral)))
+ (defclass SupportSkill
+   :subclass
+   (owland (owlsome usesMp xsd:integer)
+           (owlsome hasTarget rdf:plainliteral)
+           (owlsome hasEffect rdf:plainliteral)))
+ (defclass StatModifierSkill
+   :subclass
+   (owland (owlsome usesMp xsd:integer)
+           (owlsome hasTarget rdf:plainliteral)
+           (owlsome hasEffect rdf:plainliteral)))
+ (defclass HealingSkill
+   :subclass
+   (owland (owlsome usesMp xsd:integer)
+           (owlsome hasTarget rdf:plainliteral)
+           (owlsome hasEffect rdf:plainliteral)))
+ (defclass AutoSkill))
 
 (as-subclasses
  ElementalSkill
  :disjoint :cover
- (declare-classes AttackSkill InstantKillSkill))
+ (defclass AttackSkill
+   :equivalent
+   (owland (owlsome usesMp xsd:integer)
+           (owlsome hasRemark rdf:plainliteral)
+           (owlsome hasTarget rdf:plainliteral)
+           (owlsome hasHits rdf:plainliteral)
+           (owlsome hasDamage rdf:plainliteral)))
+ (defclass InstantKillSkill
+   :equivalent
+   (owland (owlsome usesMp xsd:integer)
+           (owlsome hasTarget rdf:plainliteral)
+           (owlsome fatalChance xsd:double))))
 
 (doseq [element ["Physical" "Gun" "Fire" "Ice" "Electric" "Force"
                  "Light" "Dark" "Almighty"]]
@@ -152,7 +202,6 @@
 
 (defn- enum [& values] (apply oneof (map literal values)))
 
-;;; TODO add restrictions to classes - what properties should they contain
 ;;; TODO should be minmax
 (defdproperty hasRank :range rdf:plainliteral)
 (defdproperty usesMp :range xsd:integer)
