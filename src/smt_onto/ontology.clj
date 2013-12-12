@@ -146,7 +146,7 @@
 (defdproperty hasMagic :range xsd:integer)
 (defdproperty hasAgility :range xsd:integer)
 (defdproperty hasLuck :range xsd:integer)
-(defdproperty hasAilment :range rdf:plainliteral)
+(defdproperty hasAilmentResistance :range rdf:plainliteral)
 (defdproperty hasAttack :range rdf:plainliteral)
 
 (defn- space->_ [s] (cstr/replace s " " "_"))
@@ -234,5 +234,5 @@
                (fact hasStrength ~strength) (fact hasDexterity ~dexterity)
                (fact hasMagic ~magic) (fact hasAgility ~agility)
                (fact hasLuck ~luck)
-               (fact hasAilment ~ailment) (fact hasAttack ~attack)
+               (fact hasAilmentResistance ~ailment) (fact hasAttack ~attack)
                ~@(map fact-for-skill skills)]))))
