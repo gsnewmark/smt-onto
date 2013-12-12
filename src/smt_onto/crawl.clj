@@ -183,7 +183,6 @@
 
 (defn demon
   [name url]
-  (println name url)
   (let [[stats resistances ailment-and-attack skills :as d] (demon-html url)]
     (when-not (empty? d)
       (let [stats (parse-demon-stats stats)

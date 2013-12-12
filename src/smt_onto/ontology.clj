@@ -129,16 +129,33 @@
 (defdproperty usesMp :range xsd:integer)
 (defdproperty fatalChance :range (minmax 0.0 1.0))
 (defdproperty hasHits :range rdf:plainliteral)
-(defdproperty hasDamage :range (enum "Weak" "Medium" "Heavy" "Severe"))
+(defdproperty hasDamage :range (enum "Weak" "Medium" "Heavy" "Severe"
+                                     "1" "666"))
 (defdproperty hasTarget :range (enum "Single" "Multi" "All" "Self" "Ally"
                                      "Party" "Foes" "Universal"))
 (defdproperty hasRemark :range rdf:plainliteral)
 ;;; TODO should be list of enums
 (defdproperty hasAilment :range rdf:plainliteral)
 (defdproperty ailmentChance :range (minmax 0.0 1.0))
-(defdproperty hasEffect :range xsd:integer)
+(defdproperty hasEffect :range rdf:plainliteral)
+(defdproperty initialLevel :range (minmax 1 100))
+(defdproperty hasHP :range xsd:integer)
+(defdproperty hasMP :range xsd:integer)
+(defdproperty hasStrength :range xsd:integer)
+(defdproperty hasDexterity :range xsd:integer)
+(defdproperty hasMagic :range xsd:integer)
+(defdproperty hasAgility :range xsd:integer)
+(defdproperty hasLuck :range xsd:integer)
+(defdproperty hasAilment :range rdf:plainliteral)
+(defdproperty hasAttack :range rdf:plainliteral)
 
 (defn- space->_ [s] (cstr/replace s " " "_"))
+
+(defn- fact-for-skill
+  [skill]
+  `(fact
+    hasSkill
+    ~(symbol (cstr/join "_" (map cstr/capitalize (cstr/split skill #" "))))))
 
 (doseq [attack-skill-map (crawl/attack-skills)
         :let [{:keys [name rank mp damage hits target remark element]}
@@ -200,13 +217,22 @@
       :type AutoSkill
       :fact [(fact hasRank ~rank) (fact hasEffect ~effect)])))
 
-(doseq [[name url] (crawl/demons-list)
-        :let [{:keys [name race] :as demon}
-              (crawl/demon name (str crawl/wiki-root url))]]
+(doseq [[name url] (take 10 (crawl/demons-list))
+        :let [{:keys [name race level hp mp stats ailment attack skills]
+               :as demon}
+              (crawl/demon name (str crawl/wiki-root url))
+
+              {:keys [strength dexterity magic agility luck]} stats]]
   (when demon
     (eval
      ;; TODO find a way to overcome the following problem:
      ;;      names of some demons clash with Java classes (e. g., Long)
      `(defindividual ~(symbol (str (space->_ name) "_Demon"))
         :type Demon
-        :fact [(fact ofRace ~(symbol race))]))))
+        :fact [(fact ofRace ~(symbol race)) (fact initialLevel ~level)
+               (fact hasHP ~hp) (fact hasMP ~mp)
+               (fact hasStrength ~strength) (fact hasDexterity ~dexterity)
+               (fact hasMagic ~magic) (fact hasAgility ~agility)
+               (fact hasLuck ~luck)
+               (fact hasAilment ~ailment) (fact hasAttack ~attack)
+               ~@(map fact-for-skill skills)]))))
